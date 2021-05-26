@@ -1,0 +1,24 @@
+udo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t vineetcodes/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true vineetcodes/react-test npm run test
+
+after_success:
+  - docker build -t vineetcodes/multi-client ./client
+  - docker build -t vineet-codes/multi-nginx ./nginx
+  - docker build -t vineet-codes/multi-server ./server
+  - docker build -t vineet-codes/multi-worker ./worker
+  # Log in to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Push the images to docker hub
+  - docker push vineetcodes/multi-client
+  - docker push vineetcodes/multi-nginx
+  - docker push vineetcodes/multi-server
+  - docker push vineetcodes/multi-worker
